@@ -1,5 +1,7 @@
 import os
+from subprocess import Popen
 import wx
+from voice import VoiceInput, VoiceInputEvent, EVT_ID
 
 MAIN_WINDOW_DEFAULT_SIZE = (300,200)
 
@@ -20,7 +22,10 @@ class Frame(wx.Frame):
         self.statusBar.SetStatusText('No image specified', 1)
 
         self.bitmap = None
-
+        # Worker thread that listens for voice input
+        self.worker = VoiceInput(self, "voice.in")
+        self.workerId = EVT_ID
+        self.Connect(-1, -1, self.workerId, self.OnOpen)
 
     def CreateMenuBar(self):
         "Create menu bar with Open, Exit"

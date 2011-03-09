@@ -2,3 +2,14 @@ Dependencies:
   CMU Sphinx libaries
   Matlab
   WxWidgets
+
+Installation Instructions (Linux):
+  Download pocketsphinx and sphinxbase
+  Compile and install using included instructions
+  run 'make'
+
+To run:
+  python main.py
+
+Debugging information:
+  recognized strings are written into 'voice.in' as plaintext

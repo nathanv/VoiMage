@@ -2,6 +2,7 @@ import subprocess
 from threading import *
 import wx
 import time
+import re
 import os
 
 #TODO: Define custom events for specific commands
@@ -18,12 +19,39 @@ class VoiceInput(Thread):
   """ Worker Thread that listens to the output of the voice recognition system
       Posts event information to the GUI.
   """
+
+  tokens = [ "open",
+             "close", ##
+             "next",
+             "back", 
+             "zoom", ##
+             "up", ##
+             "down",
+             "contrast",
+             "blur",
+             "sharp",
+          ]
+  
   def __init__(self, notify_window, comVoiceInput):
     """ Initialize the worker thread immediately """
     Thread.__init__(self)
     self._notify_window = notify_window
-    self.vInput = comVoiceInput
+    self.voiceProc = subprocess.Popen(
+        ["./lib/bin/Release/pocketsphinx_continuous",
+         "-hmm", "./lib/model/hmm/en_US/hub4wsj_sc_8k",
+         "-lm", "./lib/model/lm/en_US/hub4.5000.DMP",
+         "-dict", "./lib/model/lm/en_US/cmu07a.dic",
+         ],
+        stdout=subprocess.PIPE)
     self.start()
+
+  def match_input(self, input_string):
+    if input_string and re.match("^[0-9]+:", input_string):
+      return input_string
+    elif re.match("READY", input_string):
+      print "READY FOR VOICE INPUT"
+    else:
+      return None
 
   def run(self):
     """ Look at what the voice input has printed to stdout.
@@ -31,9 +59,13 @@ class VoiceInput(Thread):
     """
     while(True):
       time.sleep(1)
-      new_input = open(self.vInput, "r").readlines() if os.path.exists(self.vInput) else None
+      new_input = self.voiceProc.stdout.readline() if not self.voiceProc.stdout.closed else None
       if new_input:
-        #TODO post actually relevant events
-        print new_input
-        map(lambda command: wx.PostEvent(self._notify_window, VoiceInputEvent(command)), new_input)
+        new_input = self.match_input(new_input)
+        if new_input:
+          #print new_input
+          wx.PostEvent(self._notify_window, VoiceInputEvent(new_input))
+      else:
+        print "No input"
+        return
     

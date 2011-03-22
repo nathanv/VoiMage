@@ -1,6 +1,7 @@
 import os
-from subprocess import Popen
+import subprocess
 import wx
+import re
 from voice import VoiceInput, VoiceInputEvent, EVT_ID
 
 MAIN_WINDOW_DEFAULT_SIZE = (300,200)
@@ -13,6 +14,8 @@ class Frame(wx.Frame):
         self.Center()
         self.panel = wx.Panel(self)
         self.panel.SetBackgroundColour('White')
+        self.current_file = None
+        self.orig_cfile = None
 
         self.CreateMenuBar()
 
@@ -25,7 +28,7 @@ class Frame(wx.Frame):
         # Worker thread that listens for voice input
         self.worker = VoiceInput(self, "voice.in")
         self.workerId = EVT_ID
-        self.Connect(-1, -1, self.workerId, self.OnOpen)
+        self.Connect(-1, -1, self.workerId, self.handleVoice)
 
     def CreateMenuBar(self):
         "Create menu bar with Open, Exit"
@@ -41,6 +44,50 @@ class Frame(wx.Frame):
         exitMenuItem = menuFile.Append(-1, 'E&xit', 'Exit the viewer')
         self.Bind(wx.EVT_MENU, self.OnExit, exitMenuItem)
 
+    def handleVoice(self, event):
+        """ Handle voice events, delegating to other event handlers as appropriate """
+        command = event.command
+        if re.search("open", command): # handle "open" command
+            self.OnOpen(event)
+            print "Opened %s" % self.current_file
+        elif re.search("contrast", command): # handle "contrast" command
+            print "Recieved contrast command"
+            try:
+                subprocess.check_call(['matlab', '-nosplash', '-nodesktop', '-nojvm', '-r', "contrast(0, 1.0, '%s'); exit;" % self.current_file])
+                self.current_file = 'tmp.jpg'
+                self.reloadImage('tmp.jpg')
+            except subprocess.CalledProcessError:
+                print "Contrast command failed"
+        elif re.search("soon", command): # handle "blur" command
+            print "Recieved zoom command"
+            try:
+                subprocess.check_call(['matlab', '-nosplash', '-nodesktop', '-nojvm', '-r', "zoom('%s', 1.5, 0, 0); exit;" % self.current_file])
+            except subprocess.CalledProcessError:
+                print "Zoom command failed"
+        elif re.search("sharp", command): # handle "blur" command
+            print "Recieved sharpen command"
+        elif re.search("next", command): # handle 'next' command
+            print "Recieved next command"
+        elif re.search("back", command): # handle 'back' command
+            print "Recieved back command"
+        elif re.search("down", command): # handle 'back' command
+            print "Recieved down command"
+        elif re.search("left", command): # handle 'back' command
+            print "Recieved left command"
+        elif re.search("right", command): # handle 'back' command
+            print "Recieved right command"
+        elif re.search("box", command):
+            print "Recieved cluster command"
+            try:
+                subprocess.check_call(['matlab', '-nosplash', '-nodesktop', '-nojvm', '-r', "main_cluster('%s');" % self.current_file])
+            except subprocess.CalledProcessError:
+                print "Cluster command failed"
+        elif re.search("close", command): # handle 'back' command
+            print "Recieved close command"
+            self.OnExit(event)
+        else:
+            print "Uncategorized: %s" %command
+
     def OnOpen(self, event):
         "Open image file, set title if successful"
         # Create file-open dialog in current directory
@@ -54,6 +101,8 @@ class Frame(wx.Frame):
             self.SetTitle(filename)
             wx.BeginBusyCursor()
             # load image from filename
+            self.current_file = filename
+            self.orig_cfile = filename
             self.image = wx.Image(filename, wx.BITMAP_TYPE_ANY, -1) # auto-detect file type
             # set StatusBar to show image's size
             self.statusBar.SetStatusText('Size = %s' % (str(self.image.GetSize())) , 1)
@@ -62,6 +111,11 @@ class Frame(wx.Frame):
             wx.EndBusyCursor()
 
         dlg.Destroy() # Garbage Collect Dialog
+
+    def reloadImage(self, filename):
+        self.image = wx.Image(filename, wx.BITMAP_TYPE_ANY, -1)
+        self.statusBar.SetStatusText('Size = %s' % (str(self.image.GetSize())) , 1)
+        self.ShowBitmap()
 
     def ShowBitmap(self):
         # Convert image Bitmap to draw

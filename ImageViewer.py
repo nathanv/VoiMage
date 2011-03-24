@@ -116,7 +116,7 @@ class Frame(wx.Frame):
     def OnPaint(self, event):
         dc = wx.ClientDC(self)
         dc.SetPen(wx.Pen('#4c4c4c', 1, wx.TRANSPARENT))
-	if self.show_box:
+	if self.show_box and self.current_file:
           dc.DrawRectangle(self.box_x, self.box_y, self.box_dx, self.box_dy)
     
     def OnOpen(self, event):

@@ -41,9 +41,6 @@ class Frame(wx.Frame):
         self.current_file = None
         self.orig_cfile = None
 
-        #drawing variables
-
-
         self.CreateMenuBar()
 
         # create StatusBar;give it 2 columns
@@ -52,6 +49,7 @@ class Frame(wx.Frame):
         self.statusBar.SetStatusText('No image specified', 1)
 
         self.bitmap = None
+        self.box_state = False
         # Worker thread that listens for voice input
         self.worker = VoiceInput(self, "voice.in")
         self.workerId = EVT_ID
@@ -83,6 +81,19 @@ class Frame(wx.Frame):
     def handleVoice(self, event):
         """ Handle voice events, delegating to other event handlers as appropriate """
         command = event.command
+        if self.box_state:
+            if re.search("left", command):
+                self.moveBox(-10, 0)
+            elif re.search("right", command):
+                self.moveBox(10, 0)
+            elif re.search("up", command):
+                self.moveBox(0, 10)
+            elif re.search("down", command):
+                self.moveBox(0, -10)
+            elif re.search("end", command):
+                self.box_state = False
+            return
+        
         if re.search("open", command): # handle "open" command
             self.OnOpen(event)
             print "Opened %s" % self.current_file
@@ -100,23 +111,12 @@ class Frame(wx.Frame):
                 subprocess.check_call(['matlab', '-nosplash', '-nodesktop', '-nojvm', '-r', "zoom('%s', 1.5, 0, 0); exit;" % self.current_file])
             except subprocess.CalledProcessError:
                 print "Zoom command failed"
-        elif re.search("sharp", command): # handle "blur" command
-            print "Received sharpen command"
-        elif re.search("next", command): # handle 'next' command
-            print "Received next command"
-        elif re.search("back", command): # handle 'back' command
-            print "Received back command"
-        elif re.search("down", command): # handle 'back' command
-            print "Received down command"
-        elif re.search("left", command): # handle 'back' command
-            print "Received left command"
-        elif re.search("right", command): # handle 'back' command
-            print "Received right command"
         elif re.search("box", command):
             print "Received cluster command"
             try:
                 subprocess.check_call(['matlab', '-nosplash', '-nodesktop', '-nojvm', '-r', "main_cluster('%s');" % self.current_file])
                 self.drawBox('box.txt')
+                self.box_state = True
             except subprocess.CalledProcessError:
                 print "Cluster command failed"
         elif re.search("close", command): # handle 'back' command
@@ -125,11 +125,21 @@ class Frame(wx.Frame):
         else:
             print "Uncategorized: %s" %command
 
-    def moveBox(self, x, y, dx, dy):
-        self.panel.box_x = x
-        self.panel.box_y = y
-        self.panel.box_dx = dx
-        self.panel.box_dy = dy
+    def moveBox(self, dx, dy):
+        (width, height) = self.panel.GetSizeTuple()
+        if self.panel.box_x + dx >= 0 and (self.panel.box_x + dx + self.panel.box_dx) < width:
+            self.panel.box_x += dx
+        elif self.panel.box_x + dx < 0:
+            self.panel.box_x = 0
+        else:
+            self.panel.box_x = width - self.panel.box_x - self.panel.box_dx - 1;
+
+        if self.panel.box_y + dy >= 0 and (self.panel.box_y + dy + self.panel.box_dy) < height:
+            self.panel.box_y += dy
+        elif self.panel.box_y + dy < 0:
+            self.panel.box_y = 0
+        else:
+            self.panel.box_y = width - self.panel.box_y - self.panel.box_dy - 1;
 
     def drawBox(self, filename):
         csv_handle = csv.reader(open(filename, "rb"))

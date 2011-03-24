@@ -2,6 +2,7 @@ import os
 import subprocess
 import wx
 import re
+import csv
 from voice import VoiceInput, VoiceInputEvent, EVT_ID
 
 MAIN_WINDOW_DEFAULT_SIZE = (300,200)
@@ -80,6 +81,20 @@ class Frame(wx.Frame):
             print "Recieved cluster command"
             try:
                 subprocess.check_call(['matlab', '-nosplash', '-nodesktop', '-nojvm', '-r', "main_cluster('%s');" % self.current_file])
+                boxfile = csv.reader(open('box.txt','rb'))
+                box = []
+                for data in boxfile:
+                    box.append(data[0])
+                    box.append(data[1])
+                    box.append(data[2])
+                    box.append(data[3])
+                x1 = box.append(data[0])
+                y1 = box.append(data[1])
+                dx = box.append(data[2])
+                dy = box.append(data[3])
+                self.Bind(wx.EVT_PAINT, self.OnPaint)
+                self.DrawRectangle(self, e, x1, y1, dx, dy)
+                self.Show()
             except subprocess.CalledProcessError:
                 print "Cluster command failed"
         elif re.search("close", command): # handle 'back' command
@@ -88,6 +103,10 @@ class Frame(wx.Frame):
         else:
             print "Uncategorized: %s" %command
 
+    def OnPaint(self, e, x1, y1, fx, dy):
+        dc = wx.ClientDC(self)
+        dc.SetPen(wx.Pen('#4c4c4c', 1, wx.TRANSPARENT))
+    
     def OnOpen(self, event):
         "Open image file, set title if successful"
         # Create file-open dialog in current directory

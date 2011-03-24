@@ -27,4 +27,6 @@ else
     %              'String','We are here.','FontSize',14);
     %saveas(gca,[N '_cluster.bmp']);
 end
-           
+ 
+saveas(gca,'box.png')
+csvwrite('box.txt',[(pos(1)+dx) (pos(2)+dy) (pos(3)*m+dx) (pos(4)*m+dy)])

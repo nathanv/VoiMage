@@ -3,7 +3,7 @@
 % pos is position of the cluster. 
 % pos can be used to produce a movable ellipse (note the commented portion à
 % below)
-function [pos,xy] = democluster(numC,BW2)
+function [pos] = democluster(numC,BW2)
 
 [H, theta, rho] = hough(BW2);
 
@@ -27,6 +27,7 @@ end
 
 pos = [xy_long(1,1), xy_long(1,2), xy_long(2,1)-xy_long(1,1), xy_long(2,2) - xy_long(1,2)];
 
+csvwrite('clusterposition.txt',pos)
 %%plot(xy_long(:,1),xy_long(:,2),'LineWidth',2,'Color','blue')
 %figure, imshow(BW2),
 

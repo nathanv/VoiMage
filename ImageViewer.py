@@ -18,6 +18,13 @@ class Frame(wx.Frame):
         self.current_file = None
         self.orig_cfile = None
 
+	#drawing variables
+	self.show_box = False
+	self.box_x = 0
+	self.box_y = 0
+	self.box_dx = 0
+	self.box_dy = 0
+
         self.CreateMenuBar()
 
         # create StatusBar;give it 2 columns
@@ -30,6 +37,8 @@ class Frame(wx.Frame):
         self.worker = VoiceInput(self, "voice.in")
         self.workerId = EVT_ID
         self.Connect(-1, -1, self.workerId, self.handleVoice)
+	self.Bind(wx.EVT_PAINT, self.OnPaint)
+	self.Show(True)
 
     def CreateMenuBar(self):
         "Create menu bar with Open, Exit"
@@ -52,7 +61,7 @@ class Frame(wx.Frame):
             self.OnOpen(event)
             print "Opened %s" % self.current_file
         elif re.search("contrast", command): # handle "contrast" command
-            print "Recieved contrast command"
+            print "Received contrast command"
             try:
                 subprocess.check_call(['matlab', '-nosplash', '-nodesktop', '-nojvm', '-r', "contrast(0, 1.0, '%s'); exit;" % self.current_file])
                 self.current_file = 'tmp.jpg'
@@ -60,52 +69,55 @@ class Frame(wx.Frame):
             except subprocess.CalledProcessError:
                 print "Contrast command failed"
         elif re.search("soon", command): # handle "blur" command
-            print "Recieved zoom command"
+            print "Received zoom command"
             try:
                 subprocess.check_call(['matlab', '-nosplash', '-nodesktop', '-nojvm', '-r', "zoom('%s', 1.5, 0, 0); exit;" % self.current_file])
             except subprocess.CalledProcessError:
                 print "Zoom command failed"
         elif re.search("sharp", command): # handle "blur" command
-            print "Recieved sharpen command"
+            print "Received sharpen command"
         elif re.search("next", command): # handle 'next' command
-            print "Recieved next command"
+            print "Received next command"
         elif re.search("back", command): # handle 'back' command
-            print "Recieved back command"
+            print "Received back command"
         elif re.search("down", command): # handle 'back' command
-            print "Recieved down command"
+            print "Received down command"
         elif re.search("left", command): # handle 'back' command
-            print "Recieved left command"
+            print "Received left command"
         elif re.search("right", command): # handle 'back' command
-            print "Recieved right command"
+            print "Received right command"
         elif re.search("box", command):
-            print "Recieved cluster command"
+            print "Received cluster command"
             try:
                 subprocess.check_call(['matlab', '-nosplash', '-nodesktop', '-nojvm', '-r', "main_cluster('%s');" % self.current_file])
-                boxfile = csv.reader(open('box.txt','rb'))
-                box = []
-                for data in boxfile:
-                    box.append(data[0])
-                    box.append(data[1])
-                    box.append(data[2])
-                    box.append(data[3])
-                x1 = box.append(data[0])
-                y1 = box.append(data[1])
-                dx = box.append(data[2])
-                dy = box.append(data[3])
-                self.Bind(wx.EVT_PAINT, self.OnPaint)
-                self.DrawRectangle(self, e, x1, y1, dx, dy)
-                self.Show()
+		self.drawBox('box.txt')
             except subprocess.CalledProcessError:
                 print "Cluster command failed"
         elif re.search("close", command): # handle 'back' command
-            print "Recieved close command"
+            print "Received close command"
             self.OnExit(event)
         else:
             print "Uncategorized: %s" %command
 
-    def OnPaint(self, e, x1, y1, fx, dy):
+    def drawBox(self, filename):
+    	csv_handle = csv.reader(open(filename, "rb"))
+	box_info = []
+	for data in csv_handle:
+	  box_info.append(data)
+	self.setRectAttributes(box_info[0], box_info[1], box_info[2], box_info[3])
+	self.show_box = True
+
+    def setRectAttributes(self, x, y, dx, dy):
+	self.box_x = x
+	self.box_y = y
+	self.box_dx = dx
+	self.box_dy = dy
+
+    def OnPaint(self, event):
         dc = wx.ClientDC(self)
         dc.SetPen(wx.Pen('#4c4c4c', 1, wx.TRANSPARENT))
+	if self.show_box:
+          dc.DrawRectangle(self.box_x, self.box_y, self.box_dx, self.box_dy)
     
     def OnOpen(self, event):
         "Open image file, set title if successful"

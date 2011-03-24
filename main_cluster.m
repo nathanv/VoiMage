@@ -38,12 +38,19 @@ if (tok3 == 1)
     
     K = BW;%mat_zoom(BW,mag, xpos, ypos);
     
-    [pos,xy] = democluster(numC,K); 
+   [pos,xy] = democluster(numC,K); 
     
-    imshow(K)
+    KM = ones(size(K)); imshow(imageName);
     
-    RectangleofInterest(pos,1,0,0,size(K))
+    RectangleofInterest(pos,1,0,0,size(K));
     
+    
+    
+    saveas(gca,[imageName '_cluster.png'])
+    imshow(KM);
+    RectangleofInterest(pos,1,0,0,size(K));
+    saveas(gca,[imageName '_cluster_box.png'])
+    save
 end
 ret = imageName;
     

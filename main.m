@@ -42,7 +42,7 @@ if (tok3 == 1)
     
     [pos,xy] = democluster(numC,K); 
     
-    imshow(K)
+    %imshow(K)
     
     RectangleofInterest(pos,1,0,0,size(K))
     

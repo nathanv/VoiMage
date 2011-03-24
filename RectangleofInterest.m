@@ -23,7 +23,8 @@ else
     fcn = makeConstrainToRectFcn('imrect',get(gca,'XLim'),get(gca,'YLim'));
     setPositionConstraintFcn(h,fcn);
     
-    annotation('textarrow',[(pos(1)+(pos(3)/2))/k(2) (pos(3)+dx)*0.5/k(2)],[(pos(2)+(pos(4)/2))/k(1) (pos(4)+pos(2))/k(1)],...
-                   'String','We are here.','FontSize',14);
+    % annotation('textarrow',[(pos(1)+(pos(3)/2))/k(2) (pos(3)+dx)*0.5/k(2)],[(pos(2)+(pos(4)/2))/k(1) (pos(4)+pos(2))/k(1)],...
+    %              'String','We are here.','FontSize',14);
+    %saveas(gca,[N '_cluster.bmp']);
 end
            

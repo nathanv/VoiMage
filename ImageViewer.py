@@ -121,28 +121,41 @@ class Frame(wx.Frame):
         if re.search("open", command): # handle "open" command
             self.OnOpen(event)
             print "Opened %s" % self.current_file
-        elif re.search("contrast", command): # handle "contrast" command
+        elif re.search("contrast", command) or \
+             re.search("on cross", command) or \
+             re.search("andrea", command) or \
+             re.search("on trial", command): # handle "contrast" command
             print "Received contrast command"
             try:
-                subprocess.check_call(['matlab', '-nosplash', '-nodesktop', '-nojvm', '-r', "contrast(0, 1.0, '%s'); exit;" % self.current_file])
-                self.current_file = 'tmp.jpg'
-                self.reloadImage('tmp.jpg')
+                subprocess.check_call(['matlab', '-nosplash', '-nodesktop', '-nojvm', '-r', "binarize('%s', 'regular'); exit;" % self.current_file])
+                self.current_file = 'binarize.png'
+                self.reloadImage('binarize.png')
             except subprocess.CalledProcessError:
                 print "Contrast command failed"
-        elif re.search("soon", command): # handle "blur" command
+        elif re.search("soon", command): # handle "zoom" command
             print "Received zoom command"
             try:
-                subprocess.check_call(['matlab', '-nosplash', '-nodesktop', '-nojvm', '-r', "zoom('%s', 1.5, 0, 0); exit;" % self.current_file])
+                subprocess.check_call(['matlab', '-nosplash', '-nodesktop', '-nojvm', '-r', "zoom('%s', ''); exit;" % self.current_file])
+                self.current_file = 'zoom.png'
+                self.reloadImage('zoom.png')
             except subprocess.CalledProcessError:
                 print "Zoom command failed"
         elif re.search("box", command) or re.search("bob", command):
             print "Received cluster command"
             try:
-                #subprocess.check_call(['matlab', '-nosplash', '-nodesktop', '-nojvm', '-r', "main_cluster('%s');" % self.current_file])
+                subprocess.check_call(['matlab', '-nosplash', '-nodesktop', '-nojvm', '-r', "box('%s');" % self.current_file])
                 self.drawBox('box.txt')
                 self.box_state = True
             except subprocess.CalledProcessError:
                 print "Cluster command failed"
+        elif re.search("edge", command):
+            print "Received edge command"
+            try:
+                subprocess.check_call(['matlab', '-nosplash', '-nodesktop', '-nojvm', '-r', "edge('%s');" % self.current_file])
+                self.current_file = 'edge.png'
+                self.reloadImage('edge.png')
+            except subprocess.CalledProcessError:
+                print "Edge command failed"
         elif re.search("close", command): # handle 'back' command
             print "Received close command"
             self.OnExit(event)

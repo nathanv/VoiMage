@@ -96,13 +96,24 @@ class Frame(wx.Frame):
                 self.moveBox(40, 0)
             elif re.search("up", command):
                 print "Received up move"
-                self.moveBox(0, 40)
+                self.moveBox(0, -40)
             elif re.search("down", command):
                 print "Received down move"
-                self.moveBox(0, -40)
+                self.moveBox(0, 40)
+            elif re.search("bigger", command):
+                print "Received bigger resize command"
+                self.resizeBox(1.1)
+            elif re.search("smaller", command):
+                print "Received smaller resize command"
+                self.resizeBox(0.9)
             elif re.search("end", command):
                 print "Received end box moving"
                 self.box_state = False
+                open("box.txt", "w").write("%s,%s,%s,%s" %
+                                               self.panel.box_x,
+                                               self.panel.box_y,
+                                               self.panel.box_dx,
+                                               self.panel.box_dy)
             else:
                 print "Uncategorized %s" % command
             return
@@ -153,6 +164,18 @@ class Frame(wx.Frame):
             self.panel.box_y = 0
         else:
             self.panel.box_y = width - self.panel.box_y - self.panel.box_dy - 1;
+        self.panel.refreshBox()
+        self.panel.Update()
+        self.Update()
+        self.Refresh()
+
+    def resizeBox(self, scale):
+        (width, height) = self.panel.GetSizeTuple()
+        if (self.panel.box_x + scale*self.panel.box_dx + self.panel.box_dx) < width:
+            self.panel.box_dx *= scale
+        if (self.panel.box_y + self.panel.box_dy + self.panel.box_dy) < height:
+            self.panel.box_dy *= scale
+        
         self.panel.refreshBox()
         self.panel.Update()
         self.Update()

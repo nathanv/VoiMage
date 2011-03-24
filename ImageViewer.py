@@ -18,12 +18,12 @@ class Frame(wx.Frame):
         self.current_file = None
         self.orig_cfile = None
 
-	#drawing variables
-	self.show_box = False
-	self.box_x = 0
-	self.box_y = 0
-	self.box_dx = 0
-	self.box_dy = 0
+        #drawing variables
+        self.show_box = False
+        self.box_x = 0
+        self.box_y = 0
+        self.box_dx = 0
+        self.box_dy = 0
 
         self.CreateMenuBar()
 
@@ -37,8 +37,8 @@ class Frame(wx.Frame):
         self.worker = VoiceInput(self, "voice.in")
         self.workerId = EVT_ID
         self.Connect(-1, -1, self.workerId, self.handleVoice)
-	self.Bind(wx.EVT_PAINT, self.OnPaint)
-	self.Show(True)
+        self.Bind(wx.EVT_PAINT, self.OnPaint)
+        self.Show(True)
 
     def CreateMenuBar(self):
         "Create menu bar with Open, Exit"
@@ -90,7 +90,7 @@ class Frame(wx.Frame):
             print "Received cluster command"
             try:
                 subprocess.check_call(['matlab', '-nosplash', '-nodesktop', '-nojvm', '-r', "main_cluster('%s');" % self.current_file])
-		self.drawBox('box.txt')
+                self.drawBox('box.txt')
             except subprocess.CalledProcessError:
                 print "Cluster command failed"
         elif re.search("close", command): # handle 'back' command
@@ -100,24 +100,24 @@ class Frame(wx.Frame):
             print "Uncategorized: %s" %command
 
     def drawBox(self, filename):
-    	csv_handle = csv.reader(open(filename, "rb"))
-	box_info = []
-	for data in csv_handle:
-	  box_info.append(data)
-	self.setRectAttributes(box_info[0], box_info[1], box_info[2], box_info[3])
-	self.show_box = True
+        csv_handle = csv.reader(open(filename, "rb"))
+        box_info = []
+        for data in csv_handle:
+          box_info.append(data)
+        self.setRectAttributes(box_info[0], box_info[1], box_info[2], box_info[3])
+        self.show_box = True
 
     def setRectAttributes(self, x, y, dx, dy):
-	self.box_x = x
-	self.box_y = y
-	self.box_dx = dx
-	self.box_dy = dy
+        self.box_x = x
+        self.box_y = y
+        self.box_dx = dx
+        self.box_dy = dy
 
     def OnPaint(self, event):
         dc = wx.ClientDC(self)
         dc.SetPen(wx.Pen('#4c4c4c', 1, wx.TRANSPARENT))
-	if self.show_box and self.current_file:
-          dc.DrawRectangle(self.box_x, self.box_y, self.box_dx, self.box_dy)
+        if self.show_box and self.current_file:
+            dc.DrawRectangle(self.box_x, self.box_y, self.box_dx, self.box_dy)
     
     def OnOpen(self, event):
         "Open image file, set title if successful"

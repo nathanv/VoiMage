@@ -10,18 +10,23 @@ MAIN_WINDOW_DEFAULT_SIZE = (300,200)
 class activePanel(wx.Panel):
     def __init__(self, parent):
         wx.Panel.__init__(self, parent)
-        self.Bind(wx.EVT_PAINT, self.OnPaint)
         self.box_x = 0
         self.box_y = 0
         self.box_dx = 0
         self.box_dy = 0
         self.show_box = False
+        self.parent_frame = parent
         
-    def OnPaint(self, event):
-        dc = wx.PaintDC(self)
-        if self.show_box:
+    def refreshBox(self):
+        dc = wx.MemoryDC() # the canvas we actually draw on
+        if self.show_box and self.parent_frame.bitmap:
+           current_bitmap = wx.BitmapFromImage(self.parent_frame.image)
+           dc.SelectObject(current_bitmap)
            dc.SetPen(wx.Pen('#4c4c4c', 1, wx.SOLID))
+           dc.SetBrush(wx.Brush(wx.Colour(0,0,0), wx.TRANSPARENT))
            dc.DrawRectangle(self.box_x, self.box_y, self.box_dx, self.box_dy)
+           dc.SelectObject(wx.NullBitmap)
+           self.parent_frame.static_bitmap = wx.StaticBitmap(self, -1, current_bitmap)
            print self.box_x, self.box_y, self.box_dx, self.box_dy
 
     def setRectAttributes(self, x, y, dx, dy):
@@ -49,6 +54,7 @@ class Frame(wx.Frame):
         self.statusBar.SetStatusText('No image specified', 1)
 
         self.bitmap = None
+        self.static_bitmap = None
         self.box_state = False
         # Worker thread that listens for voice input
         self.worker = VoiceInput(self, "voice.in")
@@ -83,15 +89,22 @@ class Frame(wx.Frame):
         command = event.command
         if self.box_state:
             if re.search("left", command):
-                self.moveBox(-10, 0)
+                print "Received left move"
+                self.moveBox(-40, 0)
             elif re.search("right", command):
-                self.moveBox(10, 0)
+                print "Received right move"
+                self.moveBox(40, 0)
             elif re.search("up", command):
-                self.moveBox(0, 10)
+                print "Received up move"
+                self.moveBox(0, 40)
             elif re.search("down", command):
-                self.moveBox(0, -10)
+                print "Received down move"
+                self.moveBox(0, -40)
             elif re.search("end", command):
+                print "Received end box moving"
                 self.box_state = False
+            else:
+                print "Uncategorized %s" % command
             return
         
         if re.search("open", command): # handle "open" command
@@ -111,10 +124,10 @@ class Frame(wx.Frame):
                 subprocess.check_call(['matlab', '-nosplash', '-nodesktop', '-nojvm', '-r', "zoom('%s', 1.5, 0, 0); exit;" % self.current_file])
             except subprocess.CalledProcessError:
                 print "Zoom command failed"
-        elif re.search("box", command):
+        elif re.search("box", command) or re.search("bob", command):
             print "Received cluster command"
             try:
-                subprocess.check_call(['matlab', '-nosplash', '-nodesktop', '-nojvm', '-r', "main_cluster('%s');" % self.current_file])
+                #subprocess.check_call(['matlab', '-nosplash', '-nodesktop', '-nojvm', '-r', "main_cluster('%s');" % self.current_file])
                 self.drawBox('box.txt')
                 self.box_state = True
             except subprocess.CalledProcessError:
@@ -140,6 +153,10 @@ class Frame(wx.Frame):
             self.panel.box_y = 0
         else:
             self.panel.box_y = width - self.panel.box_y - self.panel.box_dy - 1;
+        self.panel.refreshBox()
+        self.panel.Update()
+        self.Update()
+        self.Refresh()
 
     def drawBox(self, filename):
         csv_handle = csv.reader(open(filename, "rb"))
@@ -150,7 +167,7 @@ class Frame(wx.Frame):
         self.panel.show_box = True
         self.panel.Update()
         self.Update()
-        self.panel.Update()
+        self.panel.refreshBox()
         self.Refresh()
 
     def OnOpen(self, event):
@@ -184,9 +201,10 @@ class Frame(wx.Frame):
 
     def ShowBitmap(self):
         # Convert image Bitmap to draw
-        self.bitmap = wx.StaticBitmap(self.panel, -1, wx.BitmapFromImage(self.image))
+        self.bitmap = wx.BitmapFromImage(self.image)
+        self.static_bitmap = wx.StaticBitmap(self.panel, -1, self.bitmap)
         # Resize application's window to image size
-        self.SetClientSize(self.bitmap.GetSize())
+        self.SetClientSize(self.static_bitmap.GetSize())
         self.Center() # open in centre of screen
 
     def OnExit(self, event):

@@ -103,7 +103,7 @@ class Frame(wx.Frame):
             elif re.search("bigger", command) or \
                  re.search("baker", command):
                 print "Received bigger resize command"
-                self.resizeBox(1.1)
+                self.resizeBox(1.1) # need to tweak scale factors
             elif re.search("smaller", command):
                 print "Received smaller resize command"
                 self.resizeBox(0.9)
@@ -126,14 +126,14 @@ class Frame(wx.Frame):
              re.search("on cross", command) or \
              re.search("andrea", command) or \
              re.search("on trial", command): # handle "contrast" command
-            print "Received contrast command"
+            print "Received contrast command" # make sure the old bitmap doesn't crowd the new one
             try:
                 subprocess.check_call(['matlab', '-nosplash', '-nodesktop', '-nojvm', '-r', "binarize('%s', 'regular'); exit;" % self.current_file])
                 self.current_file = 'contrast.png'
                 self.reloadImage('contrast.png')
             except subprocess.CalledProcessError:
                 print "Contrast command failed"
-        elif re.search("soon", command): # handle "zoom" command
+        elif re.search("soon", command): # handle "zoom" command, Not working, mostly matlab problems
             print "Received zoom command"
             try:
                 subprocess.check_call(['matlab', '-nosplash', '-nodesktop', '-nojvm', '-r', "zoom('%s', ''); exit;" % self.current_file])
@@ -155,7 +155,7 @@ class Frame(wx.Frame):
                 self.box_state = True
             except subprocess.CalledProcessError:
                 print "Cluster command failed"
-        elif re.search("edge", command):
+        elif re.search("edge", command): #voice mapping stinks, matlab crashes
             print "Received edge command"
             try:
                 subprocess.check_call(['matlab', '-nosplash', '-nodesktop', '-nojvm', '-r', "edge('%s');" % self.current_file])

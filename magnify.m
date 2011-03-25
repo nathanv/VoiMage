@@ -2,7 +2,7 @@
 % ypos : origin y coordinate
 % Z : out image of section of interest. 
 
-function[Z] = magnify(IJ,mag, xpos, ypos)
+function magnify(IJ,N,mag, xpos, ypos)
 
 hIm = imshow(IJ);
 
@@ -21,6 +21,6 @@ rr = round(r);
 
 Z = IJ(rr(2):rr(2)+rr(4),rr(1):rr(1) + rr(3));
 
-imwrite(Z,'zoom.png','png');
-csvwrite('zoom.txt',Z);
+saveas(gca,['zoom' N])
+csvwrite('zoom.txt',Z)
 %imshow(Z)

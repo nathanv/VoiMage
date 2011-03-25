@@ -14,7 +14,8 @@ elseif (pos(4)*m+dy)/k(1) > 1
                'String','the x coordinate window is too large.','FontSize',12);
            
 else
-    h = imrect(gca, [(pos(1)+dx) (pos(2)+dy) (pos(3)*m+dx) (pos(4)*m+dy)]);
+    j = [(pos(1)+dx) (pos(2)+dy) (pos(3)*m+dx) (pos(4)*m+dy)];
+    h = imrect(gca, j);
     
     setResizable(h,1)
     %annotation('rectangle',[(pos(1)+dx)/k(1) (pos(2)+dy)/k(2) (pos(3)*m+dx)/k(1) (pos(4)*m+dy)/k(2)]) 
@@ -27,5 +28,5 @@ else
     %               'String','We are here.','FontSize',14);
 end
  
-saveas(gca,'box.png')
+%imwrite(j,'box.png','png')
 csvwrite('box.txt',[(pos(1)+dx) (pos(2)+dy) (pos(3)*m+dx) (pos(4)*m+dy)])

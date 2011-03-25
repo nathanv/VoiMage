@@ -57,6 +57,7 @@ class Frame(wx.Frame):
         self.bitmap = None
         self.static_bitmap = None
         self.box_state = False
+        self.box_on_screen = True
         # Worker thread that listens for voice input
         self.worker = VoiceInput(self, "voice.in")
         self.workerId = EVT_ID
@@ -225,9 +226,13 @@ class Frame(wx.Frame):
         self.errors = 0
         self.pos = (self.pos + 1) % 4
         try:
-            subprocess.check_call(['matlab', '-nosplash', '-nodesktop', '-nojvm', '-r', "binarize('%s', 'regular'); exit;" % self.current_file])
-            self.current_file = 'contrast.png'
-            self.reloadImage('contrast.png')
+            if self.box_on_screen:
+                subprocess.check_call(['matlab', '-nosplash', '-nodesktop', '-nojvm', '-r', "binarizeBox('%s', 'regular', %s, %s, %s, %s); exit;" % (self.current_file, self.panel.box_x, self.panel.box_y, self.panel.box_dx, self.panel.box_dy)])
+                self.current_file = 'binarizebox.png'
+            else:
+                subprocess.check_call(['matlab', '-nosplash', '-nodesktop', '-nojvm', '-r', "binarize('%s', 'regular'); exit;" % self.current_file])
+                self.current_file = 'contrast.png'
+            self.reloadImage(self.current_file)
         except subprocess.CalledProcessError:
             print "Contrast command failed"
 
@@ -250,6 +255,7 @@ class Frame(wx.Frame):
             subprocess.check_call(['matlab', '-nosplash', '-nodesktop', '-nojvm', '-r', "box('%s', '');" % self.current_file])
             self.drawBox('box.txt')
             self.box_state = True
+            self.box_on_screen = True
         except subprocess.CalledProcessError:
             print "Cluster command failed"
 
@@ -258,9 +264,13 @@ class Frame(wx.Frame):
         self.errors = 0
         self.pos = (self.pos + 1) % 4
         try:
-            subprocess.check_call(['matlab', '-nosplash', '-nodesktop', '-nojvm', '-r', "edge('%s');" % self.current_file])
-            self.current_file = 'edge.png'
-            self.reloadImage('edge.png')
+            if self.box_on_screen:
+                subprocess.check_call(['matlab', '-nosplash', '-nodesktop', '-nojvm', '-r', "binarizeBox('%s', %s, %s, %s, %s); exit;" % (self.current_file, self.panel.box_x, self.panel.box_y, self.panel.box_dx, self.panel.box_dy)])
+                self.current_file = 'edgebox.png'
+            else:
+                subprocess.check_call(['matlab', '-nosplash', '-nodesktop', '-nojvm', '-r', "outline('%s');" % self.current_file])
+                self.current_file = 'edge.png'
+            self.reloadImage(self.current_file)
         except subprocess.CalledProcessError:
             print "Edge command failed"
 
@@ -347,6 +357,7 @@ class Frame(wx.Frame):
         # Resize application's window to image size
         self.SetClientSize(self.static_bitmap.GetSize())
         self.Center() # open in centre of screen
+        self.Refresh()
 
     def OnExit(self, event):
         self.Destroy()

@@ -57,7 +57,7 @@ class Frame(wx.Frame):
         self.bitmap = None
         self.static_bitmap = None
         self.box_state = False
-        self.box_on_screen = True
+        self.box_on_screen = False
         # Worker thread that listens for voice input
         self.worker = VoiceInput(self, "voice.in")
         self.workerId = EVT_ID
@@ -91,7 +91,7 @@ class Frame(wx.Frame):
             elif keycode == 390 or keycode == 45:
                 print "Received '-'; smaller resize command"
                 self.resizeBox(0.9)
-            elif keycode == 312:
+            elif keycode == 312: #spacebar
                 print "Received 'End'; end of box state"
                 self.box_state = False
                 open("box.txt", "w").write("%s,%s,%s,%s" %
@@ -100,7 +100,7 @@ class Frame(wx.Frame):
                                                self.panel.box_dx,
                                                self.panel.box_dy))
             else:
-                print "Uncategorized %s" % command
+                print "Uncategorized %s" % keycode
             return
         
         if keycode == 79: # handle "open" command
@@ -122,7 +122,7 @@ class Frame(wx.Frame):
             print "Received 'Esc'; close command"
             self.OnExit(event)
         else:
-            print "Uncategorized: %s" %command
+            print "Uncategorized: %s" % keycode
             self.errors += 1
             if self.errors > 1:
                 self.doNextCommand(event)
@@ -200,7 +200,7 @@ class Frame(wx.Frame):
             print "Received close command"
             self.OnExit(event)
         else:
-            print "Uncategorized: %s" %command
+            print "Uncategorized: %s" % command
             self.errors += 1
             if self.errors > 1:
                 self.doNextCommand(event)
@@ -227,10 +227,11 @@ class Frame(wx.Frame):
         self.pos = (self.pos + 1) % 4
         try:
             if self.box_on_screen:
-                subprocess.check_call(['matlab', '-nosplash', '-nodesktop', '-nojvm', '-r', "binarizeBox('%s', 'regular', %s, %s, %s, %s); exit;" % (self.current_file, self.panel.box_x, self.panel.box_y, self.panel.box_dx, self.panel.box_dy)])
+                subprocess.check_call(['matlab', '-nosplash', '-nodesktop', '-nojvm', '-wait', '-noFigureWindows', '-r', "binarizeBox('%s', 'regular', %s, %s, %s, %s); exit;" % (self.current_file, self.panel.box_x, self.panel.box_y, self.panel.box_dx, self.panel.box_dy)])
+                print "binarizeBox('%s', 'regular', %s, %s, %s, %s); exit;" % (self.current_file, self.panel.box_x, self.panel.box_y, self.panel.box_dx, self.panel.box_dy)
                 self.current_file = 'binarizebox.png'
             else:
-                subprocess.check_call(['matlab', '-nosplash', '-nodesktop', '-nojvm', '-r', "binarize('%s', 'regular'); exit;" % self.current_file])
+                subprocess.check_call(['matlab', '-nosplash', '-nodesktop', '-nojvm', '-wait', '-noFigureWindows', '-r', "binarize('%s', 'regular'); exit;" % self.current_file])
                 self.current_file = 'contrast.png'
             self.reloadImage(self.current_file)
         except subprocess.CalledProcessError:
@@ -241,7 +242,7 @@ class Frame(wx.Frame):
         self.errors = 0
         self.pos = (self.pos + 1) % 4
         try:
-            subprocess.check_call(['matlab', '-nosplash', '-nodesktop', '-nojvm', '-r', "zoom('%s', ''); exit;" % self.current_file])
+            subprocess.check_call(['matlab', '-nosplash', '-nodesktop', '-nojvm',  '-wait', '-noFigureWindows', '-r', "zoom('%s', ''); exit;" % self.current_file])
             self.current_file = 'zoom.png'
             self.reloadImage('zoom.png')
         except subprocess.CalledProcessError:
@@ -252,7 +253,7 @@ class Frame(wx.Frame):
         self.errors = 0
         self.pos = (self.pos + 1) % 4
         try:
-            subprocess.check_call(['matlab', '-nosplash', '-nodesktop', '-nojvm', '-r', "box('%s', '');" % self.current_file])
+            subprocess.check_call(['matlab', '-nosplash', '-nodesktop', '-nojvm',  '-wait', '-noFigureWindows', '-r', "box('%s', ''); exit;" % self.current_file])
             self.drawBox('box.txt')
             self.box_state = True
             self.box_on_screen = True
@@ -265,10 +266,10 @@ class Frame(wx.Frame):
         self.pos = (self.pos + 1) % 4
         try:
             if self.box_on_screen:
-                subprocess.check_call(['matlab', '-nosplash', '-nodesktop', '-nojvm', '-r', "binarizeBox('%s', %s, %s, %s, %s); exit;" % (self.current_file, self.panel.box_x, self.panel.box_y, self.panel.box_dx, self.panel.box_dy)])
+                subprocess.check_call(['matlab', '-nosplash', '-nodesktop', '-nojvm','-wait', '-noFigureWindows', '-r', "outlineBox('%s', %s, %s, %s, %s); exit;" % (self.current_file, self.panel.box_x, self.panel.box_y, self.panel.box_dx, self.panel.box_dy)])
                 self.current_file = 'edgebox.png'
             else:
-                subprocess.check_call(['matlab', '-nosplash', '-nodesktop', '-nojvm', '-r', "outline('%s');" % self.current_file])
+                subprocess.check_call(['matlab', '-nosplash', '-nodesktop', '-nojvm', '-wait', '-noFigureWindows', '-r', "outline('%s'); exit;" % self.current_file])
                 self.current_file = 'edge.png'
             self.reloadImage(self.current_file)
         except subprocess.CalledProcessError:

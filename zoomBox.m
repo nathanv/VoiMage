@@ -1,7 +1,8 @@
-function zoomBox(I,pos)
+function zoomBox(I, xmin, ymin, width,height)
 
+N = ['box' I];
 I = imread(I);
 
-J = I([pos(1) pos(2) pos(1)+pos(3) pos(2)+pos(4)]);
+J = I(xmin:xmin+width,ymin:ymin+height,:);
 
-magnify(J,I, 2, 0, 0);
+magnify(J,N, 2, 0, 0);

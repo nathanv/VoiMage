@@ -16,6 +16,6 @@ F1 = ordfilt2(S1,25,true(5));
 
 BW1 = imextendedmax(F1,8);
 
-saveas(gca, 'contrast.png')
+%saveas(gca, 'contrast.png')
 
 %imshow(BW1)

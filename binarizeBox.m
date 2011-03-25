@@ -1,8 +1,8 @@
-function binarizeBox(I,pos,Flag)
+function binarizeBox(I,Flag, xmin, ymin, width,height)
 
 I = imread(I);
 
-J = I([pos(1) pos(2) pos(1)+pos(3) pos(2)+pos(4)]);
+J = I(ymin:ymin+height,xmin:xmin+width,:);
 
 h = fspecial('motion', 20, 25);
 fI = imfilter(J, h);
@@ -18,4 +18,4 @@ else
     Y = contrast(lo , hi, fI);
 end
 
-imwrite(Y,'edge.png','png');
+imwrite(Y,'binarizebox.png','png');

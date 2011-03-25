@@ -21,6 +21,6 @@ rr = round(r);
 
 Z = IJ(rr(2):rr(2)+rr(4),rr(1):rr(1) + rr(3));
 
-saveas(gca,'zoom.png')
-csvwrite('zoom.txt',Z)
+imwrite(Z,'zoom.png','png');
+csvwrite('zoom.txt',Z);
 %imshow(Z)

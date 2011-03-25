@@ -100,20 +100,21 @@ class Frame(wx.Frame):
             elif re.search("down", command):
                 print "Received down move"
                 self.moveBox(0, 40)
-            elif re.search("bigger", command):
+            elif re.search("bigger", command) or \
+                 re.search("baker", command):
                 print "Received bigger resize command"
                 self.resizeBox(1.1)
             elif re.search("smaller", command):
                 print "Received smaller resize command"
                 self.resizeBox(0.9)
-            elif re.search("end", command):
-                print "Received end box moving"
+            elif re.search("and", command):
+                print "Received end of box state"
                 self.box_state = False
                 open("box.txt", "w").write("%s,%s,%s,%s" %
-                                               self.panel.box_x,
+                                               (self.panel.box_x,
                                                self.panel.box_y,
                                                self.panel.box_dx,
-                                               self.panel.box_dy)
+                                               self.panel.box_dy))
             else:
                 print "Uncategorized %s" % command
             return
@@ -128,8 +129,8 @@ class Frame(wx.Frame):
             print "Received contrast command"
             try:
                 subprocess.check_call(['matlab', '-nosplash', '-nodesktop', '-nojvm', '-r', "binarize('%s', 'regular'); exit;" % self.current_file])
-                self.current_file = 'binarize.png'
-                self.reloadImage('binarize.png')
+                self.current_file = 'contrast.png'
+                self.reloadImage('contrast.png')
             except subprocess.CalledProcessError:
                 print "Contrast command failed"
         elif re.search("soon", command): # handle "zoom" command
@@ -140,10 +141,16 @@ class Frame(wx.Frame):
                 self.reloadImage('zoom.png')
             except subprocess.CalledProcessError:
                 print "Zoom command failed"
-        elif re.search("box", command) or re.search("bob", command):
+        elif re.search("box", command) or \
+             re.search("bob", command) or \
+             re.search("all this", command) or \
+             re.search("bill", command) or \
+             re.search("talk", command) or \
+             re.search("mike", command) or \
+             re.search("office", command):
             print "Received cluster command"
             try:
-                subprocess.check_call(['matlab', '-nosplash', '-nodesktop', '-nojvm', '-r', "box('%s');" % self.current_file])
+                subprocess.check_call(['matlab', '-nosplash', '-nodesktop', '-nojvm', '-r', "box('%s', '');" % self.current_file])
                 self.drawBox('box.txt')
                 self.box_state = True
             except subprocess.CalledProcessError:

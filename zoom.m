@@ -1,5 +1,7 @@
 function [ZI] = zoom (I,Flag)
 
+I = imread(I);
+
 if strcmp(Flag,'more')
     
     ZI = magnify(I,3, 0, 0);

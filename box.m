@@ -1,12 +1,14 @@
 function box(I,Flag)
- 
+
+I = imread(I);
 h = fspecial('motion', 20, 25);
 fI = imfilter(I, h);
 
-BW = contrast(0.5, 0.7, fI);
+BW = contrast(0.4, 0.5, fI);
 
 [pos] = democluster(1,BW); 
 
+%imshow(I);
 
 if strcmp(Flag,'left')
 

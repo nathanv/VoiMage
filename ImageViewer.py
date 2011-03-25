@@ -64,6 +64,9 @@ class Frame(wx.Frame):
         self.Bind(wx.EVT_KEY_DOWN, self.onKeyPress)
         self.Show()
         self.SetFocus()
+        self.errors = 0
+        self.pos = 0
+        self.expected_commands = ['open', 'box', 'contrast', 'edge']
 
     def onKeyPress(self, event):
         print "got : %s" % event
@@ -126,21 +129,9 @@ class Frame(wx.Frame):
              re.search("on cross", command) or \
              re.search("andrea", command) or \
              re.search("on trial", command): # handle "contrast" command
-            print "Received contrast command" # make sure the old bitmap doesn't crowd the new one
-            try:
-                subprocess.check_call(['matlab', '-nosplash', '-nodesktop', '-nojvm', '-r', "binarize('%s', 'regular'); exit;" % self.current_file])
-                self.current_file = 'contrast.png'
-                self.reloadImage('contrast.png')
-            except subprocess.CalledProcessError:
-                print "Contrast command failed"
+            self.doContrastCommand()
         elif re.search("soon", command): # handle "zoom" command, Not working, mostly matlab problems
-            print "Received zoom command"
-            try:
-                subprocess.check_call(['matlab', '-nosplash', '-nodesktop', '-nojvm', '-r', "zoom('%s', ''); exit;" % self.current_file])
-                self.current_file = 'zoom.png'
-                self.reloadImage('zoom.png')
-            except subprocess.CalledProcessError:
-                print "Zoom command failed"
+            self.doZoomCommand()
         elif re.search("box", command) or \
              re.search("bob", command) or \
              re.search("all this", command) or \
@@ -148,26 +139,77 @@ class Frame(wx.Frame):
              re.search("talk", command) or \
              re.search("mike", command) or \
              re.search("office", command):
-            print "Received cluster command"
-            try:
-                subprocess.check_call(['matlab', '-nosplash', '-nodesktop', '-nojvm', '-r', "box('%s', '');" % self.current_file])
-                self.drawBox('box.txt')
-                self.box_state = True
-            except subprocess.CalledProcessError:
-                print "Cluster command failed"
+            self.doBoxCommand()
         elif re.search("edge", command): #voice mapping stinks, matlab crashes
-            print "Received edge command"
-            try:
-                subprocess.check_call(['matlab', '-nosplash', '-nodesktop', '-nojvm', '-r', "edge('%s');" % self.current_file])
-                self.current_file = 'edge.png'
-                self.reloadImage('edge.png')
-            except subprocess.CalledProcessError:
-                print "Edge command failed"
+            self.doEdgeCommand()
         elif re.search("close", command): # handle 'back' command
             print "Received close command"
             self.OnExit(event)
         else:
             print "Uncategorized: %s" %command
+            self.errors += 1
+            if self.errors > 1:
+                self.doNextCommand(event)
+
+    def doNextCommand(self, event):
+        next_command = self.expected_commands[self.pos]
+        self.pos = (self.pos + 1) % 4
+        if next_command == 'open':
+            self.OnOpen(event)
+        elif next_command == 'box':
+            self.doBoxCommand()
+        elif next_command == 'contrast':
+            self.doContrastCommand()
+        elif next_command == 'zoom':
+            self.doZoomCommand()
+        elif next_command == 'edge':
+            self.doEdgeCommand()
+        else:
+            print "Error, unknown command: %s" % next_command
+
+    def doContrastCommand(self):
+        print "Received contrast command" # make sure the old bitmap doesn't crowd the new one
+        self.errors = 0
+        self.pos = (self.pos + 1) % 4
+        try:
+            subprocess.check_call(['matlab', '-nosplash', '-nodesktop', '-nojvm', '-r', "binarize('%s', 'regular'); exit;" % self.current_file])
+            self.current_file = 'contrast.png'
+            self.reloadImage('contrast.png')
+        except subprocess.CalledProcessError:
+            print "Contrast command failed"
+
+    def doZoomCommand(self):
+        print "Received zoom command"
+        self.errors = 0
+        self.pos = (self.pos + 1) % 4
+        try:
+            subprocess.check_call(['matlab', '-nosplash', '-nodesktop', '-nojvm', '-r', "zoom('%s', ''); exit;" % self.current_file])
+            self.current_file = 'zoom.png'
+            self.reloadImage('zoom.png')
+        except subprocess.CalledProcessError:
+            print "Zoom command failed"
+
+    def doBoxCommand(self):
+        print "Received cluster command"
+        self.errors = 0
+        self.pos = (self.pos + 1) % 4
+        try:
+            subprocess.check_call(['matlab', '-nosplash', '-nodesktop', '-nojvm', '-r', "box('%s', '');" % self.current_file])
+            self.drawBox('box.txt')
+            self.box_state = True
+        except subprocess.CalledProcessError:
+            print "Cluster command failed"
+
+    def doEdgeCommand(self):
+        print "Received edge command"
+        self.errors = 0
+        self.pos = (self.pos + 1) % 4
+        try:
+            subprocess.check_call(['matlab', '-nosplash', '-nodesktop', '-nojvm', '-r', "edge('%s');" % self.current_file])
+            self.current_file = 'edge.png'
+            self.reloadImage('edge.png')
+        except subprocess.CalledProcessError:
+            print "Edge command failed"
 
     def moveBox(self, dx, dy):
         (width, height) = self.panel.GetSizeTuple()
@@ -216,6 +258,8 @@ class Frame(wx.Frame):
     def OnOpen(self, event):
         "Open image file, set title if successful"
         # Create file-open dialog in current directory
+        self.errors = 0
+        self.pos = (self.pos + 1) % 4
         filters = 'Image files (*.tiff;*.png;*.jpg)|*.tiff;*.png;*.jpg'
         dlg = wx.FileDialog(self, message="Open an Image...", defaultDir=os.getcwd(),
                             defaultFile="", wildcard=filters, style=wx.OPEN)

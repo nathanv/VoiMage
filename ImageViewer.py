@@ -43,6 +43,7 @@ class Frame(wx.Frame):
         self.Centre()
         self.panel = activePanel(self)
         self.panel.SetBackgroundColour('White')
+        self.panel.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
         self.current_file = None
         self.orig_cfile = None
 
@@ -60,18 +61,70 @@ class Frame(wx.Frame):
         self.worker = VoiceInput(self, "voice.in")
         self.workerId = EVT_ID
         self.Connect(-1, -1, self.workerId, self.handleVoice)
-        
-        self.Bind(wx.EVT_KEY_DOWN, self.onKeyPress)
         self.Show()
         self.SetFocus()
         self.errors = 0
         self.pos = 0
         self.expected_commands = ['open', 'box', 'contrast', 'edge']
 
-    def onKeyPress(self, event):
+    def OnKeyDown(self, event):
         print "got : %s" % event
-        self.current_file = 'foo'
-        self.drawBox('box.txt')
+        keycode = event.GetKeyCode()
+        print keycode
+        if self.box_state:
+            if keycode == 65:
+                print "Received 'a'; left move"
+                self.moveBox(-40, 0)
+            elif keycode == 68:
+                print "Received 'd'; right move"
+                self.moveBox(40, 0)
+            elif keycode == 87:
+                print "Received 'w'; up move"
+                self.moveBox(0, -40)
+            elif keycode == 83:
+                print "Received 's'; down move"
+                self.moveBox(0, 40)
+            elif keycode == 388 or keycode == 43:
+                print "Received '+'; bigger resize command"
+                self.resizeBox(1.1) # need to tweak scale factors
+            elif keycode == 390 or keycode == 45:
+                print "Received '-'; smaller resize command"
+                self.resizeBox(0.9)
+            elif keycode == 312:
+                print "Received 'End'; end of box state"
+                self.box_state = False
+                open("box.txt", "w").write("%s,%s,%s,%s" %
+                                               (self.panel.box_x,
+                                               self.panel.box_y,
+                                               self.panel.box_dx,
+                                               self.panel.box_dy))
+            else:
+                print "Uncategorized %s" % command
+            return
+        
+        if keycode == 79: # handle "open" command
+            self.OnOpen(event)
+            print "'o'; Opened %s" % self.current_file
+        elif keycode == 67: # handle "contrast" command
+            self.doContrastCommand()
+            print "'c'"
+        elif keycode == 90: # handle "zoom" command, Not working, mostly matlab problems
+            self.doZoomCommand()
+            print "'z'"
+        elif keycode == 66:
+            self.doBoxCommand()
+            print "'b'"
+        elif keycode == 69: #voice mapping stinks, matlab crashes
+            self.doEdgeCommand()
+            print "'e'"
+        elif keycode == 27: # handle 'back' command
+            print "Received 'Esc'; close command"
+            self.OnExit(event)
+        else:
+            print "Uncategorized: %s" %command
+            self.errors += 1
+            if self.errors > 1:
+                self.doNextCommand(event)
 
     def CreateMenuBar(self):
         "Create menu bar with Open, Exit"
@@ -278,6 +331,7 @@ class Frame(wx.Frame):
             # display image inside panel
             self.ShowBitmap()
             wx.EndBusyCursor()
+   
 
         dlg.Destroy() # Garbage Collect Dialog
 

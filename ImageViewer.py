@@ -148,6 +148,9 @@ class Frame(wx.Frame):
         elif keycode == 79: # handle "open" command
             self.OnOpen(event)
             print "'o'; Opened %s" % self.current_file
+            if self.current_file and self.current_file != 'tmp.jpg':
+                shutil.copyfile(self.current_file, 'tmp.jpg')
+                self.canUndo = True
         elif keycode == 67: # handle "contrast" command
             self.doContrastCommand()
             print "'c'"
@@ -169,9 +172,7 @@ class Frame(wx.Frame):
             self.reloadImage("tmp.jpg")
         else:
             print "Uncategorized: %s" % keycode
-        if self.current_file and self.current_file != 'tmp.jpg':
-            shutil.copyfile(self.current_file, 'tmp.jpg')
-            self.canUndo = True
+        
 
     def CreateMenuBar(self):
         "Create menu bar with Open, Exit"
@@ -225,6 +226,10 @@ class Frame(wx.Frame):
         if re.search("open", command): # handle "open" command
             self.OnOpen(event)
             print "Opened %s" % self.current_file
+            # save the current image to 'tmp.jpg' so we can go undo
+            if self.current_file and self.current_file != 'tmp.jpg':
+                shutil.copyfile(self.current_file, 'tmp.jpg')
+                self.canUndo = True
         elif re.search("contrast", command) or \
              re.search("on cross", command) or \
              re.search("andrea", command) or \
@@ -255,10 +260,7 @@ class Frame(wx.Frame):
             self.errors += 1
             if self.errors > 1:
                 self.doNextCommand(event)
-        # save the current image to 'tmp.jpg' so we can go undo
-        if self.current_file and self.current_file != 'tmp.jpg':
-            shutil.copyfile(self.current_file, 'tmp.jpg')
-            self.canUndo = True
+        
 
     def doNextCommand(self, event):
         next_command = self.expected_commands[self.pos]

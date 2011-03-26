@@ -6,7 +6,7 @@ import re
 import csv
 from voice import VoiceInput, VoiceInputEvent, EVT_ID
 
-MAIN_WINDOW_DEFAULT_SIZE = (300,200)
+MAIN_WINDOW_DEFAULT_SIZE = (600,480)
 
 class activePanel(wx.Panel):
     def __init__(self, parent):
@@ -83,6 +83,14 @@ class Frame(wx.Frame):
         self.pos = 0
         self.canUndo = False
         self.expected_commands = ['open', 'box', 'contrast', 'edge']
+        dirList=os.listdir('%s\images' % os.getcwd())
+        self.images_list = []
+        for fname in dirList:
+            print fname
+            self.images_list.append('%s\images\%s' % (os.getcwd(),fname))
+        print self.images_list
+        self.image_position=0
+        
 
     def OnKeyDown(self, event):
         print "got : %s" % event
@@ -125,7 +133,31 @@ class Frame(wx.Frame):
                 print "Uncategorized %s" % keycode
             return
         
-        if keycode == 79: # handle "open" command
+        if  keycode == 75:
+            print "Received k; move to the right"
+            if self.bitmap == None:
+                self.image_position = 0    
+            elif self.image_position + 1 >= len(self.images_list):
+                self.image_position = 0
+            else:
+                self.image_position += 1                           
+            print self.image_position
+            self.current_file = self.images_list[self.image_position]
+            print self.current_file
+            self.reloadImage(self.current_file)
+        elif keycode == 74:
+            print "Received j; move to the left"
+            if self.bitmap == None:
+                self.image_position = 0    
+            elif self.image_position - 1 < 0:
+                self.image_position = len(self.images_list)-1
+            else:
+                self.image_position -= 1                           
+            print self.image_position
+            self.current_file = self.images_list[self.image_position]
+            print self.current_file
+            self.reloadImage(self.current_file)
+        elif keycode == 79: # handle "open" command
             self.OnOpen(event)
             print "'o'; Opened %s" % self.current_file
             if self.current_file and self.current_file != 'tmp.jpg':
@@ -377,7 +409,7 @@ class Frame(wx.Frame):
         self.errors = 0
         self.pos = (self.pos + 1) % 4
         filters = 'Image files (*.tiff;*.png;*.jpg)|*.tiff;*.png;*.jpg'
-        dlg = wx.FileDialog(self, message="Open an Image...", defaultDir=os.getcwd(),
+        dlg = wx.FileDialog(self, message="Open an Image...", defaultDir='%s\images' % os.getcwd(),
                             defaultFile="", wildcard=filters, style=wx.OPEN)
         # Call dialog
         if dlg.ShowModal() == wx.ID_OK:
@@ -394,6 +426,7 @@ class Frame(wx.Frame):
             # display image inside panel
             self.ShowBitmap()
             wx.EndBusyCursor()
+        
    
 
         dlg.Destroy() # Garbage Collect Dialog

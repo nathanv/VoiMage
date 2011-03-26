@@ -31,6 +31,18 @@ class activePanel(wx.Panel):
            self.parent_frame.static_bitmap = wx.StaticBitmap(self, -1, current_bitmap)
            print self.box_x, self.box_y, self.box_dx, self.box_dy
 
+    def overlayBitmap(self, boxBitmap):
+        dc = wx.MemoryDC()
+        current_bitmap = wx.BitmapFromImage(self.parent_frame.image)
+        dc.SelectObject(current_bitmap)
+        dc.DrawBitmap(boxBitmap, self.box_x, self.box_y)
+        dc.SelectObject(wx.NullBitmap)
+        self.parent_frame.clearPanel()
+        self.parent_frame.static_bitmap = wx.StaticBitmap(self, -1, current_bitmap)
+        current_bitmap.SaveFile("tmp.jpg", wx.BITMAP_TYPE_JPEG)
+        self.parent_frame.current_file = "tmp.jpg"
+        print "overlaid image"
+
     def setRectAttributes(self, x, y, dx, dy):
         self.box_x = x
         self.box_y = y
@@ -228,6 +240,14 @@ class Frame(wx.Frame):
             self.errors += 1
             if self.errors > 1:
                 self.doNextCommand(event)
+
+    def overlayResult(self, boxfile):
+        boxImage = wx.Image(boxfile, wx.BITMAP_TYPE_ANY, -1)
+        boxBitmap = wx.BitmapFromImage(boxImage)
+        self.panel.overlayBitmap(boxBitmap)
+        self.Update()
+        self.panel.Refresh()
+        self.Refresh()
         
 
     def doNextCommand(self, event):
@@ -255,13 +275,13 @@ class Frame(wx.Frame):
                 print "self.box_on_screen == %s" % self.box_on_screen
                 subprocess.check_call(['matlab', '-nosplash', '-nodesktop', '-nojvm', '-wait', '-noFigureWindows', '-r', "binarizeBox('%s', 'regular', %s, %s, %s, %s); exit;" % (self.current_file, self.panel.box_x, self.panel.box_y, self.panel.box_dx, self.panel.box_dy)])
                 print "binarizeBox('%s', 'regular', %s, %s, %s, %s); exit;" % (self.current_file, self.panel.box_x, self.panel.box_y, self.panel.box_dx, self.panel.box_dy)
-                self.current_file = 'binarizebox.png'
-                self.box_on_screen = False
+                self.overlayResult('binarizebox.png')
+                #self.box_on_screen = False
             else:
                 print "self.box_on_screen == %s" % self.box_on_screen
                 subprocess.check_call(['matlab', '-nosplash', '-nodesktop', '-nojvm', '-wait', '-noFigureWindows', '-r', "binarize('%s', 'regular'); exit;" % self.current_file])
                 self.current_file = 'contrast.png'
-            self.reloadImage(self.current_file)
+                self.reloadImage(self.current_file)
         except subprocess.CalledProcessError:
             print "Contrast command failed"
 
@@ -296,8 +316,7 @@ class Frame(wx.Frame):
             if self.box_on_screen == True:
                 print "self.box_on_screen == %s" % self.box_on_screen
                 subprocess.check_call(['matlab', '-nosplash', '-nodesktop', '-nojvm','-wait', '-noFigureWindows', '-r', "outlineBox('%s', %s, %s, %s, %s); exit;" % (self.current_file, self.panel.box_x, self.panel.box_y, self.panel.box_dx, self.panel.box_dy)])
-                self.current_file = 'edgebox.png'
-                self.box_on_screen = False
+                self.overlayResult('edgebox.png')
             else:
                 print "self.box_on_screen == %s" % self.box_on_screen
                 subprocess.check_call(['matlab', '-nosplash', '-nodesktop', '-nojvm', '-wait', '-noFigureWindows', '-r', "outline('%s'); exit;" % self.current_file])

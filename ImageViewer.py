@@ -137,9 +137,6 @@ class Frame(wx.Frame):
             self.reloadImage("tmp.jpg")
         else:
             print "Uncategorized: %s" % keycode
-            self.errors += 1
-            if self.errors > 1:
-                self.doNextCommand(event)
         if self.current_file and self.current_file != 'tmp.jpg':
             shutil.copyfile(self.current_file, 'tmp.jpg')
             self.canUndo = True
@@ -252,11 +249,14 @@ class Frame(wx.Frame):
         self.errors = 0
         self.pos = (self.pos + 1) % 4
         try:
-            if self.box_on_screen:
+            if self.box_on_screen == True:
+                print "self.box_on_screen == %s" % self.box_on_screen
                 subprocess.check_call(['matlab', '-nosplash', '-nodesktop', '-nojvm', '-wait', '-noFigureWindows', '-r', "binarizeBox('%s', 'regular', %s, %s, %s, %s); exit;" % (self.current_file, self.panel.box_x, self.panel.box_y, self.panel.box_dx, self.panel.box_dy)])
                 print "binarizeBox('%s', 'regular', %s, %s, %s, %s); exit;" % (self.current_file, self.panel.box_x, self.panel.box_y, self.panel.box_dx, self.panel.box_dy)
                 self.current_file = 'binarizebox.png'
+                self.box_on_screen = False
             else:
+                print "self.box_on_screen == %s" % self.box_on_screen
                 subprocess.check_call(['matlab', '-nosplash', '-nodesktop', '-nojvm', '-wait', '-noFigureWindows', '-r', "binarize('%s', 'regular'); exit;" % self.current_file])
                 self.current_file = 'contrast.png'
             self.reloadImage(self.current_file)
@@ -291,10 +291,13 @@ class Frame(wx.Frame):
         self.errors = 0
         self.pos = (self.pos + 1) % 4
         try:
-            if self.box_on_screen:
+            if self.box_on_screen == True:
+                print "self.box_on_screen == %s" % self.box_on_screen
                 subprocess.check_call(['matlab', '-nosplash', '-nodesktop', '-nojvm','-wait', '-noFigureWindows', '-r', "outlineBox('%s', %s, %s, %s, %s); exit;" % (self.current_file, self.panel.box_x, self.panel.box_y, self.panel.box_dx, self.panel.box_dy)])
                 self.current_file = 'edgebox.png'
+                self.box_on_screen = False
             else:
+                print "self.box_on_screen == %s" % self.box_on_screen
                 subprocess.check_call(['matlab', '-nosplash', '-nodesktop', '-nojvm', '-wait', '-noFigureWindows', '-r', "outline('%s'); exit;" % self.current_file])
                 self.current_file = 'edge.png'
             self.reloadImage(self.current_file)

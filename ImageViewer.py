@@ -316,6 +316,8 @@ class Frame(wx.Frame):
             self.panel.box_y = 0
         else:
             self.panel.box_y = width - self.panel.box_y - self.panel.box_dy - 1;
+        self.panel.box_dx = abs(self.panel.box_dx)
+        self.panel.box_dy = abs(self.panel.box_dy)
         self.panel.refreshBox()
         self.panel.Update()
         self.Update()

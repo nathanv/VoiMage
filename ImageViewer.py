@@ -1,4 +1,5 @@
 import os
+import shutil
 import subprocess
 import wx
 import re
@@ -26,6 +27,7 @@ class activePanel(wx.Panel):
            dc.SetBrush(wx.Brush(wx.Colour(0,0,0), wx.TRANSPARENT))
            dc.DrawRectangle(self.box_x, self.box_y, self.box_dx, self.box_dy)
            dc.SelectObject(wx.NullBitmap)
+           self.parent_frame.clearPanel()
            self.parent_frame.static_bitmap = wx.StaticBitmap(self, -1, current_bitmap)
            print self.box_x, self.box_y, self.box_dx, self.box_dy
 
@@ -56,6 +58,7 @@ class Frame(wx.Frame):
 
         self.bitmap = None
         self.static_bitmap = None
+        self.box_bitmap = None
         self.box_state = False
         self.box_on_screen = False
         # Worker thread that listens for voice input
@@ -66,6 +69,7 @@ class Frame(wx.Frame):
         self.SetFocus()
         self.errors = 0
         self.pos = 0
+        self.canUndo = False
         self.expected_commands = ['open', 'box', 'contrast', 'edge']
 
     def OnKeyDown(self, event):
@@ -91,7 +95,13 @@ class Frame(wx.Frame):
             elif keycode == 390 or keycode == 45:
                 print "Received '-'; smaller resize command"
                 self.resizeBox(0.9)
-            elif keycode == 312: #spacebar
+            elif  keycode == 85 and self.canUndo: # 'u' key
+                print "Received 'u'/Undo command"
+                self.current_file = "tmp.jpg"
+                self.reloadImage("tmp.jpg")
+                self.box_state = False
+                self.box_on_screen = False
+            elif keycode == 312: #end key
                 print "Received 'End'; end of box state"
                 self.box_state = False
                 open("box.txt", "w").write("%s,%s,%s,%s" %
@@ -118,14 +128,21 @@ class Frame(wx.Frame):
         elif keycode == 69: #voice mapping stinks, matlab crashes
             self.doEdgeCommand()
             print "'e'"
-        elif keycode == 27: # handle 'back' command
+        elif keycode == 27: # handle 'esc/close' command
             print "Received 'Esc'; close command"
             self.OnExit(event)
+        elif keycode == 85 and self.canUndo: # 'u' key
+            print "Received 'u'/Undo command"
+            self.current_file = "tmp.jpg"
+            self.reloadImage("tmp.jpg")
         else:
             print "Uncategorized: %s" % keycode
             self.errors += 1
             if self.errors > 1:
                 self.doNextCommand(event)
+        if self.current_file and self.current_file != 'tmp.jpg':
+            shutil.copyfile(self.current_file, 'tmp.jpg')
+            self.canUndo = True
 
     def CreateMenuBar(self):
         "Create menu bar with Open, Exit"
@@ -175,7 +192,7 @@ class Frame(wx.Frame):
             else:
                 print "Uncategorized %s" % command
             return
-        
+    
         if re.search("open", command): # handle "open" command
             self.OnOpen(event)
             print "Opened %s" % self.current_file
@@ -186,6 +203,11 @@ class Frame(wx.Frame):
             self.doContrastCommand()
         elif re.search("soon", command): # handle "zoom" command, Not working, mostly matlab problems
             self.doZoomCommand()
+        elif re.search("undo", command) and self.canUndo: # handle "undo" command.
+            self.current_file = "tmp.jpg"
+            self.reloadImage("tmp.jpg")
+            self.box_state = False
+            self.box_on_screen = False
         elif re.search("box", command) or \
              re.search("bob", command) or \
              re.search("all this", command) or \
@@ -204,6 +226,10 @@ class Frame(wx.Frame):
             self.errors += 1
             if self.errors > 1:
                 self.doNextCommand(event)
+        # save the current image to 'tmp.jpg' so we can go undo
+        if self.current_file and self.current_file != 'tmp.jpg':
+            shutil.copyfile(self.current_file, 'tmp.jpg')
+            self.canUndo = True
 
     def doNextCommand(self, event):
         next_command = self.expected_commands[self.pos]
@@ -297,9 +323,9 @@ class Frame(wx.Frame):
 
     def resizeBox(self, scale):
         (width, height) = self.panel.GetSizeTuple()
-        if (self.panel.box_x + scale*self.panel.box_dx + self.panel.box_dx) < width:
+        if (self.panel.box_x + scale*self.panel.box_dx) < width:
             self.panel.box_dx *= scale
-        if (self.panel.box_y + self.panel.box_dy + self.panel.box_dy) < height:
+        if (self.panel.box_y + scale*self.panel.box_dy) < height:
             self.panel.box_dy *= scale
         
         self.panel.refreshBox()
@@ -351,9 +377,14 @@ class Frame(wx.Frame):
         self.statusBar.SetStatusText('Size = %s' % (str(self.image.GetSize())) , 1)
         self.ShowBitmap()
 
+    def clearPanel(self):
+        if self.static_bitmap:
+            self.static_bitmap.Destroy()
+
     def ShowBitmap(self):
         # Convert image Bitmap to draw
         self.bitmap = wx.BitmapFromImage(self.image)
+        self.clearPanel()
         self.static_bitmap = wx.StaticBitmap(self.panel, -1, self.bitmap)
         # Resize application's window to image size
         self.SetClientSize(self.static_bitmap.GetSize())

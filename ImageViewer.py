@@ -204,23 +204,42 @@ class Frame(wx.Frame):
         """ Handle voice events, delegating to other event handlers as appropriate """
         command = event.command
         if self.box_state:
-            if re.search("left", command):
+            if re.search("left", command) or \
+               re.search(re.escape("let"), command) or \
+               re.search(re.escape("last"), command) or \
+               re.search(re.escape("nafta", command) or \
+               re.search(re.escape("that is that"), command):
                 print "Received left move"
                 self.moveBox(-40, 0)
             elif re.search("right", command):
                 print "Received right move"
                 self.moveBox(40, 0)
-            elif re.search("up", command):
+            elif re.search("up", command) or \
+                 re.search(re.escape("i think", command) or \
+                 re.search(re.escape("how could", command) or \
+                 re.search(re.escape("out of", command) or \
+                 re.search(re.escape("ah", command) or \
+                 re.search(re.escape("topic", command) or \
+                 re.search(re.escape("profit", command) or \
+                 re.search(re.escape("a death", command) or \
+                 re.search(re.escape("stop", command) or \
+                 re.search(re.escape("pop", command) or \
+                 re.search(re.escape("cop", command) or \
+                 re.search(re.escape("what can", command) or \
+                 re.search(re.escape("but"), command):
                 print "Received up move"
                 self.moveBox(0, -40)
             elif re.search("down", command):
                 print "Received down move"
                 self.moveBox(0, 40)
             elif re.search("bigger", command) or \
+                 re.search(re.escape("they're", command) or \
+                 re.search(re.escape("they are", command) or \
                  re.search("baker", command):
                 print "Received bigger resize command"
                 self.resizeBox(1.1) # need to tweak scale factors
-            elif re.search("smaller", command):
+            elif re.search("smaller", command) or \
+                 re.search(re.escape("the caller"), command):
                 print "Received smaller resize command"
                 self.resizeBox(0.9)
             elif re.search("and", command):

@@ -98,6 +98,7 @@ class Frame(wx.Frame):
         keycode = event.GetKeyCode()
         print keycode
         if self.box_state:
+            self.statusBar.SetStatusText('Position box (end to exit)' , 1)
             if keycode == 65:
                 print "Received 'a'; left move"
                 self.moveBox(-40, 0)
@@ -123,6 +124,7 @@ class Frame(wx.Frame):
                 self.box_state = False
                 self.box_on_screen = False
             elif keycode == 312: #end key
+                self.statusBar.SetStatusText('Say/Enter a command' , 1)
                 print "Received 'End'; end of box state"
                 self.box_state = False
                 open("box.txt", "w").write("%s,%s,%s,%s" %
@@ -134,7 +136,7 @@ class Frame(wx.Frame):
                 print "Uncategorized %s" % keycode
             event.Skip()
             return
-
+        self.statusBar.SetStatusText('Say/Enter a command' , 1)
         if  keycode == wx.WXK_RIGHT:
             print "Received k; move to the right"
             if self.bitmap == None:
@@ -176,6 +178,7 @@ class Frame(wx.Frame):
             self.doZoomCommand()
             print "'z'"
         elif keycode == 66:
+            self.statusBar.SetStatusText('Position Box(end to exit)' , 1)
             self.doBoxCommand()
             print "'b'"
         elif keycode == 69: #voice mapping stinks, matlab crashes
@@ -217,6 +220,7 @@ class Frame(wx.Frame):
         """ Handle voice events, delegating to other event handlers as appropriate """
         command = event.command
         if self.box_state:
+            self.statusBar.SetStatusText('Positioning area of interest' , 1)
             if re.search("left", command) or \
                re.search(re.escape("let"), command) or \
                re.search(re.escape("last"), command) or \
@@ -266,7 +270,7 @@ class Frame(wx.Frame):
             else:
                 print "Uncategorized %s" % command
             return
-    
+        self.statusBar.SetStatusText('Say/Enter a command' , 1)
         if re.search("open", command): # handle "open" command
             self.OnOpen(event)
             print "Opened %s" % self.current_file
@@ -305,6 +309,7 @@ class Frame(wx.Frame):
              re.search("well", command) or \
              re.search("both", command) or \
              re.search("office", command):
+            self.statusBar.SetStatusText('Position Box(end to exit)' , 1)
             self.doBoxCommand()
         elif re.search("edge", command) or \
              re.search("good", command) or \

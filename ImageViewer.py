@@ -290,6 +290,7 @@ class Frame(wx.Frame):
              re.search(re.escape("as to it"), command) or \
              re.search(re.escape("ed king"), command) or \
              re.search(re.escape("a few"), command) or \
+             re.search(re.escape("at times"), command) or \
              re.search("agent", command) or \
              re.search("heads", command) or \
              re.search("and", command) or \
@@ -343,13 +344,13 @@ class Frame(wx.Frame):
         try:
             if self.box_on_screen == True:
                 print "self.box_on_screen == %s" % self.box_on_screen
-                subprocess.check_call(['matlab', '-nosplash', '-nodesktop', '-nojvm', '-wait', '-noFigureWindows', '-r', "binarizeBox('%s', 'regular', %s, %s, %s, %s); exit;" % (self.current_file, self.panel.box_x, self.panel.box_y, self.panel.box_dx, self.panel.box_dy)])
+                subprocess.check_call(['matlab', '-nosplash', '-nodesktop', '-nojvm', '-wait', '-noFigureWindows', '-minimize', '-r', "binarizeBox('%s', 'regular', %s, %s, %s, %s); exit;" % (self.orig_cfile, self.panel.box_x, self.panel.box_y, self.panel.box_dx, self.panel.box_dy)])
                 print "binarizeBox('%s', 'regular', %s, %s, %s, %s); exit;" % (self.current_file, self.panel.box_x, self.panel.box_y, self.panel.box_dx, self.panel.box_dy)
                 self.overlayResult('binarizebox.png')
                 #self.box_on_screen = False
             else:
                 print "self.box_on_screen == %s" % self.box_on_screen
-                subprocess.check_call(['matlab', '-nosplash', '-nodesktop', '-nojvm', '-wait', '-noFigureWindows', '-r', "binarize('%s', 'regular'); exit;" % self.current_file])
+                subprocess.check_call(['matlab', '-nosplash', '-nodesktop', '-nojvm', '-wait', '-noFigureWindows',  '-minimize', '-r', "binarize('%s', 'regular'); exit;" % self.orig_cfile])
                 self.current_file = 'contrast.png'
                 self.reloadImage(self.current_file)
         except subprocess.CalledProcessError:
@@ -360,7 +361,7 @@ class Frame(wx.Frame):
         self.errors = 0
         self.pos = (self.pos + 1) % 4
         try:
-            subprocess.check_call(['matlab', '-nosplash', '-nodesktop', '-nojvm',  '-wait', '-noFigureWindows', '-r', "zoom('%s', ''); exit;" % self.current_file])
+            subprocess.check_call(['matlab', '-nosplash', '-nodesktop', '-nojvm',  '-wait', '-noFigureWindows', '-minimize', '-r', "zoom('%s', ''); exit;" % self.current_file])
             self.current_file = 'zoom.png'
             self.reloadImage('zoom.png')
         except subprocess.CalledProcessError:
@@ -371,7 +372,7 @@ class Frame(wx.Frame):
         self.errors = 0
         self.pos = (self.pos + 1) % 4
         try:
-            subprocess.check_call(['matlab', '-nosplash', '-nodesktop', '-nojvm',  '-wait', '-noFigureWindows', '-r', "box('%s', ''); exit;" % self.current_file])
+            subprocess.check_call(['matlab', '-nosplash', '-nodesktop', '-nojvm',  '-wait', '-noFigureWindows', '-minimize', '-r', "box('%s', ''); exit;" % self.current_file])
             self.drawBox('box.txt')
             self.box_state = True
             self.box_on_screen = True
@@ -385,11 +386,11 @@ class Frame(wx.Frame):
         try:
             if self.box_on_screen == True:
                 print "self.box_on_screen == %s" % self.box_on_screen
-                subprocess.check_call(['matlab', '-nosplash', '-nodesktop', '-nojvm','-wait', '-noFigureWindows', '-r', "outlineBox('%s', %s, %s, %s, %s); exit;" % (self.current_file, self.panel.box_x, self.panel.box_y, self.panel.box_dx, self.panel.box_dy)])
+                subprocess.check_call(['matlab', '-nosplash', '-nodesktop', '-nojvm','-wait', '-noFigureWindows', '-minimize', '-r', "outlineBox('%s', %s, %s, %s, %s); exit;" % (self.orig_cfile, self.panel.box_x, self.panel.box_y, self.panel.box_dx, self.panel.box_dy)])
                 self.overlayResult('edgebox.png')
             else:
                 print "self.box_on_screen == %s" % self.box_on_screen
-                subprocess.check_call(['matlab', '-nosplash', '-nodesktop', '-nojvm', '-wait', '-noFigureWindows', '-r', "outline('%s'); exit;" % self.current_file])
+                subprocess.check_call(['matlab', '-nosplash', '-nodesktop', '-nojvm', '-wait', '-noFigureWindows', '-minimize', '-r', "outline('%s'); exit;" % self.orig_cfile])
                 self.current_file = 'edge.png'
             self.reloadImage(self.current_file)
         except subprocess.CalledProcessError:

@@ -57,7 +57,7 @@ class Frame(wx.Frame):
         self.Centre()
         self.panel = activePanel(self)
         self.panel.SetBackgroundColour('White')
-        self.panel.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
+        self.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
         self.Bind(wx.EVT_CHAR_HOOK, self.OnKeyDown)
         self.current_file = None
         self.orig_cfile = None
@@ -96,30 +96,8 @@ class Frame(wx.Frame):
         print "got : %s" % event
         keycode = event.GetKeyCode()
         print keycode
-        if  keycode == wx.WXK_RIGHT:
-            print "Received k; move to the right"
-            if self.bitmap == None:
-                self.image_position = 0    
-            elif self.image_position + 1 >= len(self.images_list):
-                self.image_position = 0
-            else:
-                self.image_position += 1                           
-            print self.image_position
-            self.current_file = self.images_list[self.image_position]
-            print self.current_file
-            self.reloadImage(self.current_file)
-        elif keycode == wx.WXK_LEFT:
-            print "Received j; move to the left"
-            if self.bitmap == None:
-                self.image_position = 0    
-            elif self.image_position - 1 < 0:
-                self.image_position = len(self.images_list)-1
-            else:
-                self.image_position -= 1                           
-            print self.image_position
-            self.current_file = self.images_list[self.image_position]
-            print self.current_file
-            self.reloadImage(self.current_file)
+
+        
         if self.box_state:
             if keycode == 65:
                 print "Received 'a'; left move"
@@ -156,8 +134,34 @@ class Frame(wx.Frame):
             else:
                 print "Uncategorized %s" % keycode
             return
-        
-        if keycode == 79: # handle "open" command
+
+        if  keycode == wx.WXK_RIGHT:
+            print "Received k; move to the right"
+            if self.bitmap == None:
+                self.image_position = 0    
+            elif self.image_position + 1 >= len(self.images_list):
+                self.image_position = 0
+            else:
+                self.image_position += 1                           
+            print self.image_position
+            self.current_file = self.images_list[self.image_position]
+            print self.current_file
+            self.reloadImage(self.current_file)
+            return
+        elif keycode == wx.WXK_LEFT:
+            print "Received j; move to the left"
+            if self.bitmap == None:
+                self.image_position = 0    
+            elif self.image_position - 1 < 0:
+                self.image_position = len(self.images_list)-1
+            else:
+                self.image_position -= 1                           
+            print self.image_position
+            self.current_file = self.images_list[self.image_position]
+            print self.current_file
+            self.reloadImage(self.current_file)
+            return
+        elif keycode == 79: # handle "open" command
             self.OnOpen(event)
             print "'o'; Opened %s" % self.current_file
             if self.current_file and self.current_file != 'tmp.jpg':
@@ -207,7 +211,7 @@ class Frame(wx.Frame):
             if re.search("left", command) or \
                re.search(re.escape("let"), command) or \
                re.search(re.escape("last"), command) or \
-               re.search(re.escape("nafta", command) or \
+               re.search(re.escape("nafta"), command) or \
                re.search(re.escape("that is that"), command):
                 print "Received left move"
                 self.moveBox(-40, 0)
@@ -215,17 +219,17 @@ class Frame(wx.Frame):
                 print "Received right move"
                 self.moveBox(40, 0)
             elif re.search("up", command) or \
-                 re.search(re.escape("i think", command) or \
-                 re.search(re.escape("how could", command) or \
-                 re.search(re.escape("out of", command) or \
-                 re.search(re.escape("ah", command) or \
-                 re.search(re.escape("topic", command) or \
-                 re.search(re.escape("profit", command) or \
-                 re.search(re.escape("a death", command) or \
-                 re.search(re.escape("stop", command) or \
-                 re.search(re.escape("pop", command) or \
-                 re.search(re.escape("cop", command) or \
-                 re.search(re.escape("what can", command) or \
+                 re.search(re.escape("i think"), command) or \
+                 re.search(re.escape("how could"), command) or \
+                 re.search(re.escape("out of"), command) or \
+                 re.search(re.escape("ah"), command) or \
+                 re.search(re.escape("topic"), command) or \
+                 re.search(re.escape("profit"), command) or \
+                 re.search(re.escape("a death"), command) or \
+                 re.search(re.escape("stop"), command) or \
+                 re.search(re.escape("pop"), command) or \
+                 re.search(re.escape("cop"), command) or \
+                 re.search(re.escape("what can"), command) or \
                  re.search(re.escape("but"), command):
                 print "Received up move"
                 self.moveBox(0, -40)
@@ -233,8 +237,8 @@ class Frame(wx.Frame):
                 print "Received down move"
                 self.moveBox(0, 40)
             elif re.search("bigger", command) or \
-                 re.search(re.escape("they're", command) or \
-                 re.search(re.escape("they are", command) or \
+                 re.search(re.escape("they're"), command) or \
+                 re.search(re.escape("they are"), command) or \
                  re.search("baker", command):
                 print "Received bigger resize command"
                 self.resizeBox(1.1) # need to tweak scale factors

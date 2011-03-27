@@ -39,8 +39,8 @@ class activePanel(wx.Panel):
         dc.SelectObject(wx.NullBitmap)
         self.parent_frame.clearPanel()
         self.parent_frame.static_bitmap = wx.StaticBitmap(self, -1, current_bitmap)
-        current_bitmap.SaveFile("tmp.jpg", wx.BITMAP_TYPE_JPEG)
-        self.parent_frame.current_file = "tmp.jpg"
+        current_bitmap.SaveFile("overlay.jpg", wx.BITMAP_TYPE_JPEG)
+        self.parent_frame.current_file = "overlay.jpg"
         print "overlaid image"
 
     def setRectAttributes(self, x, y, dx, dy):

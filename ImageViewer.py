@@ -58,6 +58,7 @@ class Frame(wx.Frame):
         self.panel = activePanel(self)
         self.panel.SetBackgroundColour('White')
         self.panel.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
+        self.Bind(wx.EVT_CHAR_HOOK, self.OnKeyDown)
         self.current_file = None
         self.orig_cfile = None
 
@@ -89,13 +90,36 @@ class Frame(wx.Frame):
             print fname
             self.images_list.append('%s\images\%s' % (os.getcwd(),fname))
         print self.images_list
-        self.image_position=0
+        self.image_position=0      
         
-
     def OnKeyDown(self, event):
         print "got : %s" % event
         keycode = event.GetKeyCode()
         print keycode
+        if  keycode == wx.WXK_RIGHT:
+            print "Received k; move to the right"
+            if self.bitmap == None:
+                self.image_position = 0    
+            elif self.image_position + 1 >= len(self.images_list):
+                self.image_position = 0
+            else:
+                self.image_position += 1                           
+            print self.image_position
+            self.current_file = self.images_list[self.image_position]
+            print self.current_file
+            self.reloadImage(self.current_file)
+        elif keycode == wx.WXK_LEFT:
+            print "Received j; move to the left"
+            if self.bitmap == None:
+                self.image_position = 0    
+            elif self.image_position - 1 < 0:
+                self.image_position = len(self.images_list)-1
+            else:
+                self.image_position -= 1                           
+            print self.image_position
+            self.current_file = self.images_list[self.image_position]
+            print self.current_file
+            self.reloadImage(self.current_file)
         if self.box_state:
             if keycode == 65:
                 print "Received 'a'; left move"
@@ -133,31 +157,7 @@ class Frame(wx.Frame):
                 print "Uncategorized %s" % keycode
             return
         
-        if  keycode == 75:
-            print "Received k; move to the right"
-            if self.bitmap == None:
-                self.image_position = 0    
-            elif self.image_position + 1 >= len(self.images_list):
-                self.image_position = 0
-            else:
-                self.image_position += 1                           
-            print self.image_position
-            self.current_file = self.images_list[self.image_position]
-            print self.current_file
-            self.reloadImage(self.current_file)
-        elif keycode == 74:
-            print "Received j; move to the left"
-            if self.bitmap == None:
-                self.image_position = 0    
-            elif self.image_position - 1 < 0:
-                self.image_position = len(self.images_list)-1
-            else:
-                self.image_position -= 1                           
-            print self.image_position
-            self.current_file = self.images_list[self.image_position]
-            print self.current_file
-            self.reloadImage(self.current_file)
-        elif keycode == 79: # handle "open" command
+        if keycode == 79: # handle "open" command
             self.OnOpen(event)
             print "'o'; Opened %s" % self.current_file
             if self.current_file and self.current_file != 'tmp.jpg':

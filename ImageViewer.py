@@ -270,9 +270,18 @@ class Frame(wx.Frame):
              re.search("andrea", command) or \
              re.search("on trial", command): # handle "contrast" command
             self.doContrastCommand()
-        elif re.search("soon", command): # handle "zoom" command, Not working, mostly matlab problems
+        elif re.search("soon", command) or \
+             re.search("zone", command) or \
+             re.search("room", command) or \
+             re.search("film", command): # handle "zoom" command, Not working, mostly matlab problems
             self.doZoomCommand()
-        elif re.search("undo", command) and self.canUndo: # handle "undo" command.
+        elif (re.search("undo", command) or \
+             re.search(re.escape("and do"), command) or \
+             re.search(re.escape("and they"), command) or \
+             re.search(re.escape("i'm guilty"), command) or \
+             re.search(re.escape("i do"), command) or \
+             re.search(re.escape("and it"), command) or \
+             re.search(re.escape("and they were"), command)) and self.canUndo: # handle "undo" command.
             self.current_file = "tmp.jpg"
             self.reloadImage("tmp.jpg")
             self.box_state = False

@@ -257,12 +257,50 @@ class Frame(wx.Frame):
         elif re.search("box", command) or \
              re.search("bob", command) or \
              re.search("all this", command) or \
+             re.search("all that", command) or \
              re.search("bill", command) or \
              re.search("talk", command) or \
              re.search("mike", command) or \
+             re.search("well", command) or \
+             re.search("both", command) or \
              re.search("office", command):
             self.doBoxCommand()
-        elif re.search("edge", command): #voice mapping stinks, matlab crashes
+        elif re.search("edge", command) or \
+             re.search("good", command) or \
+             re.search(re.escape("they didn't"), command) or \
+             re.search(re.escape("i didn't"), command) or \
+             re.search(re.escape("that's in"), command) or \
+             re.search(re.escape("ed kids"), command) or \
+             re.search(re.escape("that jim"), command) or \
+             re.search(re.escape("heads up"), command) or \
+             re.search(re.escape("that kid"), command) or \
+             re.search(re.escape("that just"), command) or \
+             re.search(re.escape("head count"), command) or \
+             re.search(re.escape("it's the"), command) or \
+             re.search(re.escape("did you"), command) or \
+             re.search(re.escape("had you"), command) or \
+             re.search(re.escape("and to have"), command) or \
+             re.search(re.escape("that changed"), command) or \
+             re.search(re.escape("and just"), command) or \
+             re.search(re.escape("that's up"), command) or \
+             re.search(re.escape("but just"), command) or \
+             re.search(re.escape("stay tuned"), command) or \
+             re.search(re.escape("a tragic death"), command) or \
+             re.search(re.escape("add to it"), command) or \
+             re.search(re.escape("as to it"), command) or \
+             re.search(re.escape("ed king"), command) or \
+             re.search(re.escape("a few"), command) or \
+             re.search("agent", command) or \
+             re.search("heads", command) or \
+             re.search("and", command) or \
+             re.search("exit", command) or \
+             re.search("magic", command) or \
+             re.search("aging", command) or \
+             re.search(re.escape("ed ("), command) or \
+             re.search("page", command) or \
+             re.search("tensions", command) or \
+             re.search("thank you", command) or \
+             re.search("jeff", command): #voice mapping stinks, matlab crashes
             self.doEdgeCommand()
         elif re.search("close", command): # handle 'back' command
             print "Received close command"

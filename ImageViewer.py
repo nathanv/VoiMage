@@ -57,7 +57,7 @@ class Frame(wx.Frame):
         self.Centre()
         self.panel = activePanel(self)
         self.panel.SetBackgroundColour('White')
-        self.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
+        self.panel.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
         self.Bind(wx.EVT_CHAR_HOOK, self.OnKeyDown)
         self.current_file = None
         self.orig_cfile = None
@@ -90,14 +90,13 @@ class Frame(wx.Frame):
             print fname
             self.images_list.append('%s\images\%s' % (os.getcwd(),fname))
         print self.images_list
-        self.image_position=0      
+        self.image_position=0
+        self.panel.SetFocus()
         
     def OnKeyDown(self, event):
         print "got : %s" % event
         keycode = event.GetKeyCode()
         print keycode
-
-        
         if self.box_state:
             if keycode == 65:
                 print "Received 'a'; left move"
@@ -133,6 +132,7 @@ class Frame(wx.Frame):
                                                self.panel.box_dy))
             else:
                 print "Uncategorized %s" % keycode
+            event.Skip()
             return
 
         if  keycode == wx.WXK_RIGHT:
@@ -145,9 +145,11 @@ class Frame(wx.Frame):
                 self.image_position += 1                           
             print self.image_position
             self.current_file = self.images_list[self.image_position]
+            self.orig_cfile = self.current_file
+            self.createUndoBackup()
             print self.current_file
             self.reloadImage(self.current_file)
-            return
+            event.Skip()
         elif keycode == wx.WXK_LEFT:
             print "Received j; move to the left"
             if self.bitmap == None:
@@ -158,15 +160,15 @@ class Frame(wx.Frame):
                 self.image_position -= 1                           
             print self.image_position
             self.current_file = self.images_list[self.image_position]
+            self.orig_cfile = self.current_file
+            self.createUndoBackup()
             print self.current_file
             self.reloadImage(self.current_file)
-            return
+            event.Skip()
         elif keycode == 79: # handle "open" command
             self.OnOpen(event)
             print "'o'; Opened %s" % self.current_file
-            if self.current_file and self.current_file != 'tmp.jpg':
-                shutil.copyfile(self.current_file, 'tmp.jpg')
-                self.canUndo = True
+            self.createUndoBackup()
         elif keycode == 67: # handle "contrast" command
             self.doContrastCommand()
             print "'c'"
@@ -186,9 +188,16 @@ class Frame(wx.Frame):
             print "Received 'u'/Undo command"
             self.current_file = "tmp.jpg"
             self.reloadImage("tmp.jpg")
+            self.box_state = False
+            self.box_on_screen = False
         else:
             print "Uncategorized: %s" % keycode
-        
+        event.Skip()
+
+    def createUndoBackup(self):
+        if self.current_file and self.current_file != 'tmp.jpg':
+            shutil.copyfile(self.current_file, 'tmp.jpg')
+            self.canUndo = True
 
     def CreateMenuBar(self):
         "Create menu bar with Open, Exit"
